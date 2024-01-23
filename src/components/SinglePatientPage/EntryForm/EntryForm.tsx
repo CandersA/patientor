@@ -3,12 +3,30 @@ import { EntryWithoutId } from "../../../types";
 import patientService from "../../../services/patients";
 import axios from "axios";
 import { Patient, Diagnosis, Discharge, SickLeave } from "../../../types";
-import {  TextField, Button, FormControl, Select, MenuItem, InputLabel } from '@mui/material';
+import {  TextField, Button, FormControl, Select, MenuItem, InputLabel, Input } from '@mui/material';
 
 interface props {
     id: string;
     setPatient: React.Dispatch<React.SetStateAction<Patient | undefined>>;
 }
+
+const codes = [
+    "M24.2",
+    "M51.2",
+    "S03.5",
+    "J10.1",
+    "J06.9",
+    "Z57.1",
+    "N30.0",
+    "H54.7",
+    "J03.0",
+    "L60.1",
+    "Z74.3",
+    "L20",
+    "F43.2",
+    "S62.5",
+    "H35.29"
+];
 
 const EntryForm = ({ id, setPatient }: props) => {
 
@@ -16,7 +34,7 @@ const EntryForm = ({ id, setPatient }: props) => {
     const [date, setDate] = useState('');
     const [specialist, setSpecialist] = useState('');
     const [healthCheckRating, setHealthCheckRating] = useState(0);
-    const [diagnosesCodesString, setDiagnosesCodesString] = useState('');
+    const [diagnosesCodes, setDiagnosesCodes] = useState<Array<Diagnosis['code']>>([]);
     const [type, setType] = useState("HealthCheck");
     const [employerName, setEmployerName] = useState('');
     const [discharge, setDischarge] = useState<Discharge>({
@@ -29,14 +47,6 @@ const EntryForm = ({ id, setPatient }: props) => {
     });
 
     const [error, setError] = useState('');
-
-    const convertCodesToArray = (diagnosesCodes: string): Array<Diagnosis['code']> | undefined => {
-        if (diagnosesCodes !== '') {
-            return diagnosesCodes.split(", ");
-        }
-
-        return;
-    };
 
     const submitNewEntry = async (values: EntryWithoutId) => {
         try {
@@ -61,8 +71,6 @@ const EntryForm = ({ id, setPatient }: props) => {
     };
 
     const addEntry = (event: SyntheticEvent) => {
-
-        const diagnosesCodes = convertCodesToArray(diagnosesCodesString);
 
         event.preventDefault();
 
@@ -97,7 +105,7 @@ const EntryForm = ({ id, setPatient }: props) => {
 
     return (
         <form onSubmit={addEntry}>
-            <h4>New HealthCheck Form</h4>
+            <h4>New Patient Entry</h4>
             <p>{error}</p>
 
             <TextField
@@ -106,25 +114,44 @@ const EntryForm = ({ id, setPatient }: props) => {
                 value={description}
                 onChange={({ target }) => setDescription(target.value)}
             />
-            <TextField
-                label="Date"
-                placeholder="YYYY-MM-DD"
+
+            <InputLabel id="date">Date</InputLabel>
+            <Input
+                id="date"
+                type="date"
                 fullWidth
                 value={date}
                 onChange={({ target }) => setDate(target.value)}
             />
+
             <TextField
                 label="Specialist"
                 fullWidth
                 value={specialist}
                 onChange={({ target }) => setSpecialist(target.value)}
             />
-            <TextField
-                label="Diagnoses Codes"
-                fullWidth
-                value={diagnosesCodesString}
-                onChange={({ target }) => setDiagnosesCodesString(target.value)}
-            />
+
+            <FormControl fullWidth>
+                <InputLabel id="code-select-label">Diagnoses Codes</InputLabel>
+                <Select
+                        labelId="code-select-label"
+                        id="code-select"
+                        value={diagnosesCodes}
+                        multiple
+                        onChange={({ target }) => setDiagnosesCodes(
+                            typeof target.value === 'string' ? target.value.split(',') : target.value
+                        )}
+                >
+                    {codes.map((code) => (
+                        <MenuItem
+                            key={code}
+                            value={code}
+                        >
+                            {code}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
 
             <FormControl fullWidth>
                 <InputLabel id="type-select-label">Type</InputLabel>
@@ -132,7 +159,6 @@ const EntryForm = ({ id, setPatient }: props) => {
                     labelId="type-select-label"
                     id="type-select"
                     value={type}
-                    label="Type"
                     onChange={({ target }) => setType(target.value)}
                 >
                     <MenuItem value={"HealthCheck"}>Health Check</MenuItem>
@@ -143,17 +169,22 @@ const EntryForm = ({ id, setPatient }: props) => {
 
             {
                 type == "HealthCheck" ?
-                <TextField
-                    label="Health Check Rating"
-                    fullWidth
-                    value={healthCheckRating}
-                    onChange={({ target }) => setHealthCheckRating(Number(target.value))}
-                />
+                <>
+                    <TextField
+                        label="Health Check Rating"
+                        fullWidth
+                        value={healthCheckRating}
+                        onChange={({ target }) => setHealthCheckRating(Number(target.value))}
+                    />
+                </>
                 : type == "Hospital" ?
                 <>
                     <h4>Discharge</h4>
-                    <TextField
-                        label="Date"
+
+                    <InputLabel id="discharge-date">Discharge date</InputLabel>
+                    <Input
+                        id="discharge-date"
+                        type="date"
                         fullWidth
                         value={discharge.date}
                         onChange={({ target }) => setDischarge({
@@ -161,6 +192,7 @@ const EntryForm = ({ id, setPatient }: props) => {
                             date: target.value
                         })}
                     />
+
                     <TextField
                         label="Criteria"
                         fullWidth
@@ -179,9 +211,13 @@ const EntryForm = ({ id, setPatient }: props) => {
                         value={employerName}
                         onChange={({ target }) => setEmployerName(target.value)}
                     />
+
                     <h4>Sick Leave</h4>
-                    <TextField
-                        label="Start Date"
+
+                    <InputLabel id="start-date">Start date</InputLabel>
+                    <Input
+                        id="start-date"
+                        type="date"
                         fullWidth
                         value={sickLeave.startDate}
                         onChange={({ target }) => setSickLeave({
@@ -189,9 +225,11 @@ const EntryForm = ({ id, setPatient }: props) => {
                             startDate: target.value
                         })}
                     />
-                    <TextField
-                        label="End Date"
-                        fullWidth
+
+                    <InputLabel id="end-date">End date</InputLabel>
+                    <Input
+                        id="end-date"
+                        type="date"
                         value={sickLeave.endDate}
                         onChange={({ target }) => setSickLeave({
                             ...sickLeave,
