@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Patient } from "../../types";
 import patientService from "../../services/patients";
 import HealthEntries from "./HealthEntries";
+import EntryForm from "./EntryForm/EntryForm";
 
 const SinglePatientPage = () => {
 
@@ -29,6 +30,7 @@ const SinglePatientPage = () => {
           <p>{`ssn: ${patient.ssn}`}</p>
           <p>{`occupation: ${patient.occupation}`}</p>
         </div>
+        <EntryForm id={ patient.id } setPatient={ setPatient } />
         <HealthEntries entries={patient.entries} />
       </>
     );

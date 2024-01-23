@@ -37,7 +37,7 @@ interface BaseEntry {
     description: string;
     date: string;
     specialist: string;
-    diagnosisCodes?: Array<Diagnosis['code']>;
+    diagnosesCodes?: Array<Diagnosis['code']>;
 }
 
 export enum HealthCheckRating {
@@ -52,12 +52,12 @@ export interface HealthCheckEntry extends BaseEntry {
     healthCheckRating: HealthCheckRating;
 }
 
-interface SickLeave {
+export interface SickLeave {
     startDate: string;
     endDate: string;
 }
 
-interface Discharge {
+export interface Discharge {
     date: string;
     criteria: string;
 }
